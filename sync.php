@@ -120,6 +120,78 @@ class Firefox_Sync {
         return $username;
     }
 
+    // TEST
+    public function add_bookmark($data) {
+        $arr = array(
+            "payload" => array(
+                "title" => $data['title'],
+                "bmkUri" => $data['bmkUri'],
+                "description" => $data['description'],
+                "type" => "bookmark",
+                "id" => substr(base64_encode($data['bmkUri']), 0, 12) // TODO: Make sure we only use alphanum, underscore and hyphen chars.
+            ),
+            "id" => substr(base64_encode($data['bmkUri']), 0, 12), // TODO: Make sure we only use alphanum, underscore and hyphen chars.
+            "sortindex" => 14700
+        );
+
+        $enc_arr = $this->encrypt_payload($arr);
+        $json = json_encode($enc_arr);
+
+        $r = $this->post($this->base_url . 'storage/bookmarks', '[' . $json . ']');
+
+        return $r;
+    }
+
+    // TEST
+    private function post($url, $data) {
+        $h = curl_init($url);
+        curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($h, CURLOPT_USERPWD,
+            $this->username . ':' . $this->password);
+        curl_setopt($h, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($h, CURLOPT_POST, true);
+        curl_setopt($h, CURLOPT_POSTFIELDS, $data);
+
+        $r = curl_exec($h);
+        $headers = curl_getinfo($h);
+        curl_close($h);
+
+        if ($headers['http_code'] !== 201 && $headers['http_code'] !== 200) {
+            throw new Exception('' . $headers['http_code'] . " resp $url");
+        }
+
+        return true;
+
+    //    return $r;
+    }
+
+    // TEST
+    public function delete_bookmark($id) {
+        $r = $this->delete($id);
+        return $r;
+    }
+
+    // TEST
+    private function delete($id) {
+        $h = curl_init($this->base_url . 'storage/bookmarks/' . $id);
+        curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($h, CURLOPT_USERPWD,
+            $this->username . ':' . $this->password);
+        curl_setopt($h, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($h, CURLOPT_CUSTOMREQUEST, "DELETE");
+
+        $r = curl_exec($h);
+        $headers = curl_getinfo($h);
+        curl_close($h);
+
+        if ($headers['http_code'] !== 200) {
+            throw new Exception('' . $headers['http_code'] . " resp $url");
+        }
+
+        return true;
+        // return $r;
+    }
+
     // This is described somewhat in the simple encryption document at Mozilla.
     // The sync key as presented to the user is kinda sorta a base32 encoded
     // binary value. It's been converted to lowercase, and an l characters were
