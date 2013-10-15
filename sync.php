@@ -96,12 +96,14 @@ class Firefox_Sync {
             $this->fetch_bulk_keys();
         }
 
+        $request = $this->base_url . 'storage/' . $collection . '?full=1&sort=newest';
+
         $r = array();
-        $items = $this->fetch_json($this->base_url . 'storage/' . $collection .
-            '?full=1');
+        $items = $this->fetch_json($request);
         foreach ($items as $item) {
             $r[] = json_decode($this->c_decrypt(json_decode($item->payload), $collection));
         }
+
         return $r;
     }
 
