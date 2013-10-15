@@ -239,6 +239,29 @@ class Firefox_Sync {
         return $data;
     }
 
+    // TEST
+    private function encrypt_payload($record/*, $collection*/) {
+        $iv = mcrypt_create_iv(16);
+        $enc_key = $this->bulk_keys['default']; // TODO: Check for collection keys 1st
+        $ciphertext = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $enc_key, json_encode($record['payload']), MCRYPT_MODE_CBC, $iv);
+        $ciphertext_b64 = base64_encode($ciphertext);
+
+        // FIXME: Dupe
+        $json = $this->fetch_json($this->base_url . 'storage/crypto/keys');
+        $keys = $this->c_decrypt(json_decode($json->payload), 'crypto');
+        $default_keys = json_decode($keys);
+        $hmac_key = base64_decode($default_keys->default[1]);
+        $hmac = hash_hmac('sha256', $ciphertext_b64, $hmac_key, true);
+
+        $record['payload'] = json_encode(array(
+            'ciphertext' => $ciphertext_b64,
+            'IV' => base64_encode($iv),
+            'hmac' => base64_encode($hmac)
+        ));
+
+        return $record;
+    }
+
     // Collection decrypt. Lookup the collection in the bulk keys list and
     // find the relevant key to use. There's a special case for the crypto
     // collection, which uses a key based off a transform of the sync key.
