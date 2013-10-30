@@ -122,15 +122,21 @@ class Firefox_Sync {
 
     // TEST
     public function add_bookmark($data) {
+        if (isset($data['id'])) {
+            $id = $data['id'];
+        } else {
+            $id = substr(base64_encode($data['bmkUri']), 0, 12); // TODO: Make sure we only use alphanum, underscore and hyphen chars.
+        }
+
         $arr = array(
             "payload" => array(
                 "title" => $data['title'],
                 "bmkUri" => $data['bmkUri'],
                 "description" => $data['description'],
                 "type" => "bookmark",
-                "id" => substr(base64_encode($data['bmkUri']), 0, 12) // TODO: Make sure we only use alphanum, underscore and hyphen chars.
+                "id" => $id
             ),
-            "id" => substr(base64_encode($data['bmkUri']), 0, 12), // TODO: Make sure we only use alphanum, underscore and hyphen chars.
+            "id" => $id,
             "sortindex" => 14700
         );
 
@@ -140,6 +146,14 @@ class Firefox_Sync {
         $r = $this->post($this->base_url . 'storage/bookmarks', '[' . $json . ']');
 
         return $r;
+    }
+
+    // TEST
+    public function get_bookmark($id) {
+        $json = $this->fetch_json($this->base_url . 'storage/bookmarks/' . $id);
+        $bookmark = json_decode($this->c_decrypt(json_decode($json->payload), 'bookmarks')); // TODO: Error handling
+
+        return $bookmark;
     }
 
     // TEST
