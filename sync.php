@@ -128,13 +128,23 @@ class Firefox_Sync {
             $id = substr(base64_encode($data['bmkUri']), 0, 12); // TODO: Make sure we only use alphanum, underscore and hyphen chars.
         }
 
+        if ($data['tags'] !== "") {
+            $tags = array_map('trim', explode(",", $data['tags']));
+        } else {
+            $tags = array();
+        }
+
         $arr = array(
             "payload" => array(
                 "title" => $data['title'],
                 "bmkUri" => $data['bmkUri'],
                 "description" => $data['description'],
                 "type" => "bookmark",
-                "id" => $id
+                "id" => $id,
+                "parentId" => "menu", // TODO: Make this customizable
+                "parentName" => "Bookmarks Menu", // TODO: Make this customizable
+                "tags" => $tags,
+                "keyword" => $data['keyword']
             ),
             "id" => $id,
             "sortindex" => 14700
