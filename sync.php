@@ -265,6 +265,10 @@ class Firefox_Sync {
 
     // TEST
     private function encrypt_payload($record/*, $collection*/) {
+        if ($this->bulk_keys === null) {
+            $this->fetch_bulk_keys();
+        }
+
         $iv = mcrypt_create_iv(16);
         $enc_key = $this->bulk_keys['default']; // TODO: Check for collection keys 1st
         $ciphertext = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $enc_key, json_encode($record['payload']), MCRYPT_MODE_CBC, $iv);
