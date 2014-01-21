@@ -71,6 +71,7 @@ class Firefox_Sync {
         $this->set_credentials($username, $password);
         $this->set_sync_key($sync_key);
         $this->set_base_url($base_url);
+        $this->fetch_bulk_keys();
     }
 
     public function set_credentials($username, $password) {
@@ -92,10 +93,6 @@ class Firefox_Sync {
     }
 
     public function collection_full($collection) {
-        if ($this->bulk_keys === null) {
-            $this->fetch_bulk_keys();
-        }
-
         $request = $this->base_url . 'storage/' . $collection . '?full=1&sort=newest';
 
         $r = array();
@@ -265,10 +262,6 @@ class Firefox_Sync {
 
     // TEST
     private function encrypt_payload($record/*, $collection*/) {
-        if ($this->bulk_keys === null) {
-            $this->fetch_bulk_keys();
-        }
-
         $iv = mcrypt_create_iv(16);
         $enc_key = $this->bulk_keys['default']; // TODO: Check for collection keys 1st
         $ciphertext = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $enc_key, json_encode($record['payload']), MCRYPT_MODE_CBC, $iv);
